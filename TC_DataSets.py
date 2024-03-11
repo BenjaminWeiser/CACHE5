@@ -65,7 +65,7 @@ Sections:
 
     1. Cleaned and combined test and train Pei sets with CYP_clean_files.ipnyb. Sets combined and then clustered to create new train and test sets
     2. Dock each ligand 5 times to its respective isoform using FITTED. Docked data can be found here: (to be inserted)
-    3. Create analogue sets using FITTED. Create max train-test similarity using CYP_TC_DataSets.py
+    3. Create analogue sets using FITTED. Create max train-test similarity using TC_DataSets.py
     4. Run RF with Feature Importances using max train-test similarity of 0.8 using ML_over_Tanimoto.py which calls CYP_inhibition_functions.py and Do_ML2.py
     5. Using these selected features run all ML models on all datasets using ML_over_Tanimoto.py which calls CYP_inhibition_functions.py and Do_ML2.py
     6. Use CYP_evaluate_and_ensemble.py which calls CYP_evaluate_and_ensemble_functions.py to make ensembles and evaluate and graph model performance
