@@ -27,7 +27,7 @@ def Do_XGradientBoost_regression(X , y , testSet , scores_test , name , pm , sco
     X = scaler.fit_transform(X)
     testSet_norm = scaler.transform(testSet)
     # Save normalizing parameters
-    scaler_path = pm[ 'dir' ] + '/' + pm[ 'Project_name' ] + pm[ 'model_dir' ] + '/' + name + '_scaler.pkl'
+    scaler_path = pm[ 'Project_name' ] + pm[ 'model_dir' ] + '/' + name + '_scaler.pkl'
     joblib.dump(scaler , scaler_path)
 
     print(
@@ -97,7 +97,7 @@ def log_best_params(name , best , pm) :
 
 
 def save_model_xgb(model , pm , model_name , name) :
-    model_path = pm[ 'dir' ] + '/' + pm[ 'Project_name' ] + pm[
+    model_path = pm[ 'Project_name' ] + pm[
         'model_dir' ] + '/' + model_name + '_' + name + '_model.json'
     if not os.path.isfile(model_path) :
         model.save_model(model_path)
@@ -123,20 +123,10 @@ def plot_hyperopt_results(best , trials , pm , model_name , name) :
 
         axes[ int(i) ].set_title(param)
 
-    plt.savefig(
-        pm[ 'dir' ] + '/' + pm[ 'Project_name' ] + pm[ 'fig_dir' ] + '/' + model_name + '_%s_hyp_search.png' % name)
+    plt.savefig(pm[ 'Project_name' ] + pm[ 'fig_dir' ] + '/' + model_name + '_%s_hyp_search.png' % name)
 
 
 def ecpf4_featurizer(data) :
-    """
-    Compute the ECPF4 fingerprints for the input data.
-
-    Parameters:
-    - data: DataFrame, the data containing SMILES strings.
-
-    test_mol = Chem.MolFromSmiles(test_compound)
-    test_bit = AllChem.GetMorganFingerprintAsBitVect(test_mol, radius=2, nBits=2048)"""
-
     from rdkit import Chem
     from rdkit.Chem import AllChem
     from rdkit.Chem import DataStructs
@@ -152,6 +142,26 @@ def ecpf4_featurizer(data) :
         ecpf4.append(arr)
     # return as dataframe
     return pd.DataFrame(ecpf4)
+
+
+def maccs_featurizer(data):
+    from rdkit import Chem
+    from rdkit.Chem import MACCSkeys
+    from rdkit.Chem import DataStructs
+
+    maccs = []
+    for index, row in data.iterrows():
+        smiles = row['SMILES']
+        mol = Chem.MolFromSmiles(smiles)
+        bit = MACCSkeys.GenMACCSKeys(mol)
+        # Convert the ExplicitBitVect to a numpy array
+        arr = np.zeros((1,), int)
+        DataStructs.ConvertToNumpyArray(bit, arr)
+        maccs.append(arr)
+
+    # Return as dataframe
+    return pd.DataFrame(maccs)
+
 
 
 from sklearn.metrics import mean_absolute_error , mean_squared_error , r2_score
@@ -219,7 +229,7 @@ def Do_XGradientBoost(X , y , testSet , scores_test , name , pm , scored , seed)
     X = scaler.fit_transform(X)
     testSet_norm = scaler.transform(testSet)
     # Save normalizing parameters
-    scaler_path = pm[ 'dir' ] + '/' + pm[ 'Project_name' ] + pm[ 'model_dir' ] + '/' + name + '_scaler.pkl'
+    scaler_path = pm[ 'Project_name' ] + pm[ 'model_dir' ] + '/' + name + '_scaler.pkl'
     joblib.dump(scaler , scaler_path)
 
     # save normalizing parameters

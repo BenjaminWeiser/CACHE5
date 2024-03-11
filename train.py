@@ -3,17 +3,17 @@ from collections import Counter
 
 from imblearn.over_sampling import SMOTE
 
-from Do_ML import Do_XGradientBoost_regression , ecpf4_featurizer , Do_XGradientBoost
+from Do_ML import Do_XGradientBoost_regression, ecpf4_featurizer, Do_XGradientBoost, maccs_featurizer
 
-pm = { 'Project_name' : 'March4_CACHE5' ,
-       'dir' : '/home/weiser/PYTHON/CACHE5/' ,
-       'data_dir' : '/Clusters_Max_TC' ,
+pm = { 'Project_name' : 'March11_CACHE5' ,
+       'dir' : 'CACHE5/' ,
+       'data_dir' : 'Clusters_Max_TC' ,
        'data_file' : '/train_set_March4_CACHE5_',
        "model_dir" : '/models' ,
        'fig_dir' : '/figs' ,
        'num_test_set_clusters' : 50 ,  # number of clusters to make test set from
        'test_set_cluster_size' : 10 ,  # number of molecules to take from each cluster for test set
-       'use_some_data' : 0 ,  # Use only 100 molecules for testing
+       'use_some_data' : 1 ,  # Use only 100 molecules for testing
        'maxevals' : 30 ,  # Number of evaluations for hyperopt
        'output_filename' : '/home/weiser/PYTHON/CACHE5/results.txt' ,  # File to write the results to
        'tan' : [ 0.3, 0.4 , 0.6 , 0.8 ] ,
@@ -24,18 +24,18 @@ pm = { 'Project_name' : 'March4_CACHE5' ,
 #TODO make a better system for directory pointing
 
 # make model and fig directories
-model_dir = pm[ 'dir' ] + '/' + pm[ 'Project_name' ] + pm[ 'model_dir' ]
-fig_dir = pm[ 'dir' ] + '/' + pm[ 'Project_name' ] + pm[ 'fig_dir' ]
+model_dir =pm[ 'Project_name' ] + pm[ 'model_dir' ]
+fig_dir =pm[ 'Project_name' ] + pm[ 'fig_dir' ]
 os.makedirs(model_dir , exist_ok=True)
 os.makedirs(fig_dir , exist_ok=True)
 seed = 42
 
 #load test set
 import pandas as pd
-test_set = pd.read_csv(pm[ 'dir' ] + pm['data_dir'] + '/test_setMarch4_CACHE5.csv')
+test_set = pd.read_csv(pm['data_dir'] + '/test_setMarch4_CACHE5.csv')
 print('test_set.shape:', test_set.shape)
 x_test = test_set.drop('pAct' , axis=1)
-x_test = ecpf4_featurizer(x_test)
+x_test = maccs_featurizer(x_test)
 y_test = test_set['pAct']
 y_test_class = pd.Series(0, index=y_test.index)  # Initialize with zeros
 y_test_class[y_test > 8] = 1
@@ -47,13 +47,13 @@ result_all = pd.DataFrame()
 for tc in pm['tan']:
        name = str(tc)
        print('training model for tan = ', tc)
-       train_data = pd.read_csv(pm[ 'dir' ] + pm['data_dir'] + pm[ 'data_file' ] + str(tc) + '.csv')
+       train_data = pd.read_csv(pm['data_dir'] + pm[ 'data_file' ] + str(tc) + '.csv')
        if pm[ 'use_some_data' ] == 1:
-           train_data = train_data.sample(n=100)
+           train_data = train_data.sample(n=200)
        print('train_data.shape:', train_data.shape)
 
        x_train = train_data.drop('pAct' , axis=1)
-       x_train = ecpf4_featurizer(x_train)
+       x_train = maccs_featurizer(x_train)
        y_train = train_data['pAct']
 
        if pm['regr'] == 1:
@@ -83,7 +83,7 @@ for tc in pm['tan']:
        print(result)
        result_all = pd.concat([result_all, result], axis=1)
 
-result_all.to_csv(pm['dir'] + '/' + pm['Project_name'] + '/results_all.csv')
+result_all.to_csv(pm['Project_name'] + '/results_all.csv')
 print(result_all)
 #
 

@@ -22,25 +22,18 @@ def prepare_data_for_cache5(data_frame):
     return data_frame
 
 
-def plot_mean_pAct_distribution(data_frame):
-    plt.figure(figsize=(10, 6))
-    # Check if Mean_pAct column exists and is not empty
-    if 'Mean_pAct' in data_frame.columns and not data_frame['Mean_pAct'].isnull().all():
-        plt.hist(data_frame['Mean_pAct'].dropna(), bins=30, color='skyblue', edgecolor='black')
-        plt.title('Distribution of Mean_pAct Values in CHEMBL Data')
-        plt.xlabel('Mean_pAct')
-        plt.ylabel('Frequency')
-    else:
-        print("Mean_pAct column is missing or contains no valid data.")
-    plt.grid(True)
-    plt.show()
 
-def plot_pAct_distribution(data_frame):
+
+def plot_pAct_distribution(data_frame, title= 'Distribution of pAct Values of Test Set'):
+    #if Mean_pact is column name change to pAct
+    if 'Mean_pAct' in data_frame.columns:
+        data_frame = data_frame.rename(columns={'Mean_pAct': 'pAct'})
+
     plt.figure(figsize=(10, 6))
     # Check if Mean_pAct column exists and is not empty
     if 'pAct' in data_frame.columns and not data_frame['pAct'].isnull().all():
         plt.hist(data_frame['pAct'].dropna(), bins=30, color='skyblue', edgecolor='black')
-        plt.title('Distribution of pAct Values of CHEMBL and Patent Data')
+        plt.title(title)
         plt.xlabel('Mean_pAct')
         plt.ylabel('Frequency')
     else:
@@ -52,21 +45,8 @@ def plot_pAct_distribution(data_frame):
 
 
 
-
-
-from rdkit import Chem
 from rdkit.Chem import PandasTools
-import pandas as pd
 
-from rdkit.Chem import PandasTools
-import pandas as pd
-
-
-from rdkit.Chem import PandasTools
-import pandas as pd
-
-from rdkit.Chem import PandasTools
-import pandas as pd
 
 def read_sdf_and_extract_activities(file_path):
     sdf_data = PandasTools.LoadSDF(file_path, smilesName='SMILES', molColName='Molecule', includeFingerprints=False)
@@ -155,7 +135,7 @@ chembl_data = read_sdf_and_extract_data(chembl_sdf_path)
 chembl_data_prepared = prepare_data_for_cache5(chembl_data)
 
 # Plotting the distribution of mean_pAct values
-plot_mean_pAct_distribution(chembl_data_prepared)
+plot_pAct_distribution(chembl_data_prepared, title='Distribution of Mean_pAct Values in CHEMBL Data')
 
 
 patent_data = read_sdf_and_extract_data(patent_sdf_path)
@@ -180,7 +160,7 @@ cache5_data = pd.concat([patent_data_prepared, chembl_data_prepared], ignore_ind
 #save cache5_data to csv
 cache5_data.to_csv('cache5_data.csv', index=False)
 #plot the distribution of pAct values
-plot_pAct_distribution(cache5_data)
+plot_pAct_distribution(cache5_data, title='Distribution of pAct Values in CACHE5 Data')
 
 
 
