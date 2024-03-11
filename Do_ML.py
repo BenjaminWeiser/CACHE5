@@ -20,6 +20,8 @@ from xgboost import XGBClassifier , XGBRegressor
 
 
 def Do_XGradientBoost_regression(X , y , testSet , scores_test , name , pm , scored , seed) :
+    np.set_printoptions(precision=2)
+
     m = 'XGBr'
     scaler = MinMaxScaler()
 
@@ -68,6 +70,8 @@ def Do_XGradientBoost_regression(X , y , testSet , scores_test , name , pm , sco
                 print('new best:' , best_score , params)
             return { 'loss' : acc , 'status' : STATUS_OK }
 
+
+
         trials = Trials()
         best = fmin(f , space4xgb , algo=tpe.suggest , max_evals=pm[ 'maxevals' ] , trials=trials)
 
@@ -79,7 +83,7 @@ def Do_XGradientBoost_regression(X , y , testSet , scores_test , name , pm , sco
         plot_hyperopt_results(best_params , trials , pm , 'XGB' , name)
 
     model = XGBRegressor(**best_params , random_state=seed)
-    model.fit(X , y, scoring= 'mean_squared_error')
+    model.fit(X , y)
 
     scores_pred_test = model.predict(testSet_norm)
 

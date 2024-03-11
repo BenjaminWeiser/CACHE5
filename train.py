@@ -1,11 +1,12 @@
 import os
 from collections import Counter
 
+import numpy as np
 from imblearn.over_sampling import SMOTE
 
 from Do_ML import Do_XGradientBoost_regression, ecpf4_featurizer, Do_XGradientBoost, maccs_featurizer
 
-pm = { 'Project_name' : 'March11_CACHE5' ,
+pm = { 'Project_name' : 'March11_CACHE5_2' ,
        'dir' : 'CACHE5/' ,
        'data_dir' : 'Clusters_Max_TC' ,
        'data_file' : '/train_set_March4_CACHE5_',
@@ -13,22 +14,23 @@ pm = { 'Project_name' : 'March11_CACHE5' ,
        'fig_dir' : '/figs' ,
        'num_test_set_clusters' : 50 ,  # number of clusters to make test set from
        'test_set_cluster_size' : 10 ,  # number of molecules to take from each cluster for test set
-       'use_some_data' : 1 ,  # Use only 100 molecules for testing
+       'use_some_data' : 0 ,  # Use only 100 molecules for testing
        'maxevals' : 30 ,  # Number of evaluations for hyperopt
        'output_filename' : '/home/weiser/PYTHON/CACHE5/results.txt' ,  # File to write the results to
        'tan' : [ 0.3, 0.4 , 0.6 , 0.8 ] ,
        'hyp_tune' : 1,
-       'regr' : 1,
-       'class' : 0,
+       'regr' : 0,
+       'class' : 1,
        }
 #TODO make a better system for directory pointing
-
+#TODO make featurizer a parameter
 # make model and fig directories
 model_dir =pm[ 'Project_name' ] + pm[ 'model_dir' ]
 fig_dir =pm[ 'Project_name' ] + pm[ 'fig_dir' ]
 os.makedirs(model_dir , exist_ok=True)
 os.makedirs(fig_dir , exist_ok=True)
 seed = 42
+np.set_printoptions(precision=2)
 
 #load test set
 import pandas as pd
@@ -66,7 +68,7 @@ for tc in pm['tan']:
               #to discard middle
               #train_data = train_data[ (train_data[ 'pAct' ] > 8) | (train_data[ 'pAct' ] < 7.5) ]  # Discard middle
 
-              x_train_class = ecpf4_featurizer(train_data.drop([ 'pAct' , 'binary_label' ] , axis=1))
+              x_train_class = maccs_featurizer(train_data.drop([ 'pAct' , 'binary_label' ] , axis=1))
               y_train_class = train_data[ 'binary_label' ]
 
               counter = Counter(y_train_class)

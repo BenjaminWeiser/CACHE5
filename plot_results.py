@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 
 
 
-pm = { 'Project_name' : 'March4_CACHE5' ,
+pm = { 'Project_name' : 'March11_CACHE5_2' ,
        'dir' : 'CACHE5' ,
        'data_dir' : 'Clusters_Max_TC' ,
        'data_file' : '/train_set_March4_CACHE5_',
@@ -31,8 +31,8 @@ pm = { 'Project_name' : 'March4_CACHE5' ,
        'output_filename' : '/results.txt' ,  # File to write the results to
        'tan' : [ 0.3, 0.4 , 0.6 , 0.8 ] ,
        'hyp_tune' : 1,
-       'regr' : 1,
-        'class' : 0,
+       'regr' : 0,
+        'class' : 1,
        'results' : 0,
        }
 
@@ -81,60 +81,64 @@ if pm['regr'] == 1:
 
     binary_predictions = [ ]
     plot_pAct_distribution(test_set, 'Distribution of pAct Values of predicitions on Test Set')
+    i = 0
 
 
     # Assuming x_test, actual_labels, and models_and_scalers are already defined
-    activity_threshold = 7.3
-    wiggle_rooms = np.linspace(-0.5 , 0.5 , 21)  # Define wiggle room values
+    activity_thresholds = [7.3, 7, 7.8, 8]
+    for activity_threshold in activity_thresholds:
+        wiggle_rooms = np.linspace(-0.5 , 0.5 , 21)  # Define wiggle room values
 
-    percent_active_correct = [ ]
-    percent_inactive_discarded = [ ]
+        percent_active_correct = [ ]
+        percent_inactive_discarded = [ ]
 
-    # Get averaged prediction scores for each compound
-    avg_predictions = np.zeros(len(x_test))
-    for model , scaler in models_and_scalers :
-        # Scale the test data with the corresponding scaler
-        x_test_scaled = scaler.transform(x_test)
+        # Get averaged prediction scores for each compound
+        avg_predictions = np.zeros(len(x_test))
+        for model , scaler in models_and_scalers :
+            # Scale the test data with the corresponding scaler
+            x_test_scaled = scaler.transform(x_test)
 
-        # Predict using the scaled test data and accumulate predictions
-        avg_predictions += model.predict(x_test_scaled)
+            # Predict using the scaled test data and accumulate predictions
+            avg_predictions += model.predict(x_test_scaled)
 
-    # Average the predictions
-    avg_predictions /= len(models_and_scalers)
+        # Average the predictions
+        avg_predictions /= len(models_and_scalers)
 
-    #give avg_predictions_plot column of pAct
-    avg_predictions_plot = pd.DataFrame(avg_predictions, columns=['pAct'])
+        #give avg_predictions_plot column of pAct
+        avg_predictions_plot = pd.DataFrame(avg_predictions, columns=['pAct'])
 
-    plot_pAct_distribution(avg_predictions_plot)
+        if i ==0:
+            plot_pAct_distribution(avg_predictions_plot)
+            i =1
 
-    for wiggle_room in wiggle_rooms :
-        adjusted_threshold = activity_threshold - wiggle_room
+        for wiggle_room in wiggle_rooms :
+            adjusted_threshold = activity_threshold - wiggle_room
 
-        # Classify compounds based on the adjusted threshold
-        predicted_active = avg_predictions >= adjusted_threshold
+            # Classify compounds based on the adjusted threshold
+            predicted_active = avg_predictions >= adjusted_threshold
 
-        # Calculate true positives and true negatives
-        true_positives = np.sum(predicted_active & (y_test >= activity_threshold))
-        true_negatives = np.sum(~predicted_active & (y_test < activity_threshold))
+            # Calculate true positives and true negatives
+            true_positives = np.sum(predicted_active & (y_test >= activity_threshold))
+            true_negatives = np.sum(~predicted_active & (y_test < activity_threshold))
 
-        # Calculate percentages
-        percent_active = (true_positives / np.sum(y_test >= activity_threshold)) * 100
-        percent_inactive = (true_negatives / np.sum(y_test < activity_threshold)) * 100
+            # Calculate percentages
+            percent_active = (true_positives / np.sum(y_test >= activity_threshold)) * 100
+            percent_inactive = (true_negatives / np.sum(y_test < activity_threshold)) * 100
 
-        # Append results for plotting
-        percent_active_correct.append(percent_active)
-        percent_inactive_discarded.append(percent_inactive)
+            # Append results for plotting
+            percent_active_correct.append(percent_active)
+            percent_inactive_discarded.append(percent_inactive)
 
-    # Plotting the results
-    plt.figure(figsize=(10 , 6))
-    plt.plot(wiggle_rooms , percent_active_correct , label='% Active Correctly Predicted' , marker='o')
-    plt.plot(wiggle_rooms , percent_inactive_discarded , label='% Inactive Correctly Discarded' , marker='x')
-    plt.title('Impact of Wiggle Room on Model Predictions')
-    plt.xlabel('Wiggle Room')
-    plt.ylabel('Percentage')
-    plt.legend()
-    plt.grid(True)
-    plt.show()
+        # Plotting the results
+        plt.figure(figsize=(10 , 6))
+        plt.plot(wiggle_rooms , percent_active_correct , label='% Active Correctly Predicted' , marker='o')
+        plt.plot(wiggle_rooms , percent_inactive_discarded , label='% Inactive Correctly Discarded' , marker='x')
+        plt.title('Impact of Wiggle Room on Model Predictions with threshold = ' + str(activity_threshold))
+        plt.xlabel('Wiggle Room')
+        plt.ylabel('Percentage')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
 
 # inactive_labels now contains a 1 for compounds all models labeled as too inactive and 0 otherwise
 if pm['class'] == 1:
@@ -158,7 +162,7 @@ if pm['class'] == 1:
 
     # Load and prepare the test set
     # Assuming 'pm' and 'ecpf4_featurizer' are defined elsewhere in your code
-    test_set = pd.read_csv(pm[ 'dir' ] + pm[ 'data_dir' ] + '/test_setMarch4_CACHE5.csv')
+    test_set = pd.read_csv(pm[ 'data_dir' ] + '/test_setMarch4_CACHE5.csv')
     x_test = test_set.drop('pAct' , axis=1)
     x_test = ecpf4_featurizer(x_test)
     y_test = test_set[ 'pAct' ]
@@ -192,7 +196,7 @@ if pm['class'] == 1:
 
 if pm['results']:
     # load results_all.csv
-    data = pd.read_csv('March4_CACHE5/results_all.csv')
+    data = pd.read_csv('March11_CACHE5_2/results_all.csv')
     # First, let's read the uploaded CSV file to understand its structure and contents.
 
     # Extracting similarity values (assuming they are the max train-test similarity)
