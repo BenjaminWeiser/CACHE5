@@ -103,12 +103,16 @@ Overall this script is a mix of data preparation, filtering based on the applica
 '''
 def load_parameters():
     pm = {'Project_name': 'March4_CACHE5',
-          'dir': '/home/weiser/PYTHON/CACHE5/',
+          'dir': './',
+          'file_name' : 'cache5_data.csv',
           'num_test_set_clusters': 50, # number of clusters to make test set from
           'test_set_cluster_size': 10, # number of molecules to take from each cluster for test set
           'use_some_data': 0, # Use only 500 molecules for testing
           }
     return pm
+
+
+
 
 tanimoto = [0.3, 0.4, 0.6, 0.8]
 # make a dataframe with columns for each tanimoto value
@@ -122,7 +126,7 @@ if not os.path.exists(pm['dir'] + '/Clusters_Max_TC'):
     os.makedirs(pm['dir'] + '/Clusters_Max_TC')
 
 #load data from data_dir + cahce5_data.csv
-data = pd.read_csv(DATA_DIR + 'cache5_data.csv')
+data = pd.read_csv(DATA_DIR + pm['file_name'])
 #drop duplicate smiles
 data = data.drop_duplicates(subset=['SMILES'])
 
@@ -133,10 +137,15 @@ tanimoto_df = pd.DataFrame(columns=tanimoto)
 # Make Test Set
 ##############################################################################################################
 print('Making Test Set')
-test_set = pd.DataFrame(columns=['SMILES', 'pAct'])
+test_set = pd.DataFrame(columns=['SMILES'])
+origin_seeds = [-1]
+
 for i in tqdm(range(pm['num_test_set_clusters']), total=pm['num_test_set_clusters'], desc="Making Test Set"):
-    origin_seed = random.randint(0, len(data)) - 1
-    test_set_origin = data['SMILES'].iloc[origin_seed]  
+    origin_seed = -1
+    while origin_seed in origin_seeds:
+        origin_seed = random.randint(0, len(data))
+    origin_seeds.append(origin_seed)
+    test_set_origin = data['SMILES'].iloc[origin_seed]
     # pick a random id from docked_ids to be the test set origin
     # Get the tanimoto similarity between the test set origin and all uniques docked smiles
     # keep these 500 and call them the test ids
@@ -164,6 +173,9 @@ for i in tqdm(range(pm['num_test_set_clusters']), total=pm['num_test_set_cluster
 
 # get size for test set dataframe
 print('Size of test set:', len(test_set))
+#delete duplicate smiles in test set and print if deletes
+test_set = test_set.drop_duplicates(subset=['smiles'])
+print('Size of test set after dropping duplicates:', len(test_set))
 test_set.to_csv(pm['dir'] + '/Clusters_Max_TC/' + 'test_set' + pm['Project_name'] + '.csv', index=False)
 
 # Make Train Set
@@ -206,6 +218,11 @@ for MAX_TANIMOTO in tanimoto:
     print('TAN:', MAX_TANIMOTO, 'Size train:', len(train_set))
     # put size of train_set into row 'train size and tanimoto column into tanimoto_df for plotting
     tanimoto_df.loc['train_set_size', MAX_TANIMOTO] = len(train_set)
+
+    #delete duplicate smiles in train set and print if deletes
+    print('Size of train set before dropping duplicates:', len(train_set))
+    train_set = train_set.drop_duplicates(subset=['smiles'])
+    print('Size of train set after dropping duplicates:', len(train_set))
     train_set.to_csv(pm['dir'] + '/Clusters_Max_TC/' + 'train_set_' + pm['Project_name'] + '_' + str(MAX_TANIMOTO) + '.csv',
                      index=False)
     tanimoto_df.to_csv(pm['dir'] + '/Clusters_Max_TC/' + 'tanimoto_df_' + pm['Project_name'] + '.csv', index=False)
